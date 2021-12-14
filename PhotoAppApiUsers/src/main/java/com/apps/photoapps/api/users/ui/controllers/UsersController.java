@@ -7,6 +7,8 @@ import org.modelmapper.convention.MatchingStrategies;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.core.env.Environment;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.apps.photoapps.api.users.service.UsersService;
 import com.apps.photoapps.api.users.shared.UserDto;
 import com.apps.photoapps.api.users.ui.model.CreateUserRequestModel;
+import com.apps.photoapps.api.users.ui.model.CreateUserResponseModel;
 
 @RestController
 @RequestMapping("/users")
@@ -33,15 +36,17 @@ public class UsersController {
 	}
 	
 	@PostMapping
-	public String createUser(@RequestBody CreateUserRequestModel userDetails) {
+	public ResponseEntity<CreateUserResponseModel> createUser(@RequestBody CreateUserRequestModel userDetails) {
 		
 		ModelMapper modelMapper = new ModelMapper();
 		modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
 		
 		UserDto userDto = modelMapper.map(userDetails,  UserDto.class);
 			
-		usersService.createUser(userDto);
+		UserDto createdUser = usersService.createUser(userDto);
 		
-		return "Create user method is called.";
+		CreateUserResponseModel returnValue = modelMapper.map(createdUser,  CreateUserResponseModel.class);
+		
+		return ResponseEntity.status(HttpStatus.CREATED).body(returnValue);
 	}
 }
